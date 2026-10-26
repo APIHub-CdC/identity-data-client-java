@@ -19,3 +19,11 @@ hs_err_pid*
 target
 .gradle
 build
+
+hs_err_pid*
+
+target/*
+.classpath
+.DS_Store
+.settings
+.project

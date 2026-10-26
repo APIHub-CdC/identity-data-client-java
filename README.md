@@ -40,73 +40,81 @@ Al iniciar sesión seguir los siguientes pasos:
 
 Los siguientes datos a modificar se encuentran en ***src/main/java/io/identityData/client/ApiClient.java***
 
-Es importante contar con el setUp() que se encargará de inicializar la url. Modificar la URL ***('the_url')***, como se muestra en el siguiente fragmento de código:
+Es importante contar con el setUp() que se encargará de inicializar la url. Modificar la URL ***('URL_API')***, como se muestra en el siguiente fragmento de código:
 
 ```java
-  private String basePath = "the_url";
+ @Before
+    public void setUp() {
+        this.apiClient = api.getApiClient();
+        this.apiClient.setBasePath("URL_API");
+        OkHttpClient okHttpClient = new OkHttpClient().newBuilder()
+                .readTimeout(30, TimeUnit.SECONDS)
+                .addInterceptor(new SignerInterceptor())
+                .build();
+        apiClient.setHttpClient(okHttpClient);
+    }
 ```
 
-En el archivo **FimpeApiTest.java**, que se encuentra en ***src/test/java/io/identityData/client/api/FimpeApiTest..java*** se deberá modificar el siguiente fragmento de código con los datos correspondientes:
+En el archivo **VerifyCedulaApiTest.java**, que se encuentra en ***src/test/java/io/identityData/client/api/VerifyCedulaApiTest..java*** se deberá modificar el siguiente fragmento de código con los datos correspondientes:
 
 ```java
 
-@Test
-public void createCredentialTest() throws Exception {
-        String xSignature = null;
+ @Test
+    public void retrieveVerifyCedulaTest() throws Exception {
         String xApiKey = this.xApiKey;
         String username = this.username;
         String password = this.password;
-        Request body = new Request();
-        body.setInfoProvider(Request.InfoProviderEnum.INE);
-        body.setCic("YOUR_CIC");
-        body.setOcr("YOUR_OCR");
-        body.setReferencia("YOUR_REFERENCIA");
-        body.setInstitucion("C_CREDITO");
-        body.setFecha("YOUR_DATE");
-        body.setRequestId("3842184a-89b6-4307-ab87-dc5d830819fa");
+        String inquiryId = "YOUR_INQUIRY_ID";
+        VerifyCedulaGetResponse response = api.retrieveVerifyCedula(xApiKey, username, password, inquiryId);
+        Assert.assertNotNull(response);
+        logger.info(response.toString());
+    }
 
-
-        ResponseINE response = api.callIneWithHttpInfo( xApiKey, username, password, body).getData();
-
-        }
-
-
-@Test
-public void renapoGet() throws Exception {
-        String xSignature = null;
+    @Test
+    public void verifyCedulaTest() throws Exception {
+        IdentityCedulaValidationRequest body =  new IdentityCedulaValidationRequest();
         String xApiKey = this.xApiKey;
         String username = this.username;
         String password = this.password;
-        Request body = new Request();
-        body.setInfoProvider(Request.InfoProviderEnum.RENAPO);
-        body.setCurp("YOUR_CuRP");
-        body.setReferencia("YOUR_REFERENCIA");
-        body.setFecha("YOUR_DATE");
-        body.setRequestId("3842184a-89b6-4307-ab87-dc5d830819fa");
+        
+        
+        PrivacyNotice privacyNotice = new PrivacyNotice();
+        privacyNotice.setTermsAcceptedAt("");
+        
+        FullName fullName = new FullName();
+        fullName.setNames("");
+        fullName.setPaternalSurname("");
+        fullName.setMaternalSurname("");
+        fullName.setBirthDate("");
+        
+        Address address = new Address();
+        address.setStreet("");
+        address.setNeighborhood("");
+        address.setCity("");
+        address.setMunicipality("");
+        address.setState(StateEnum.AGU);
+        address.setPostalCode("");
+        
+        privacyNotice.setFullName(fullName);
+        privacyNotice.setAddress(address);
+        
+        body.setPrivacyNotice(privacyNotice);
+        
+        AllOfIdentityCedulaValidationRequestCedulaValidator cedulaValidator = new AllOfIdentityCedulaValidationRequestCedulaValidator();
+        cedulaValidator.setExternalId("");
+        cedulaValidator.setSubscriptionId("");
+        cedulaValidator.setCurp("");
+        cedulaValidator.setNames("");
+        cedulaValidator.setLastName("");
+        cedulaValidator.setSecondLastName("");
+        
+        body.setCedulaValidator(cedulaValidator);
+        
+        IdentityCedulaValidationResponse response = api.verifyCedula(body, xApiKey, username, password);
+        Assert.assertNotNull(response);
+        logger.info(response.toString());
 
-
-        ResponseRenapo response = api.callRENAPO( xApiKey, username, password, body).getData();
-
-        }
-
-@Test
-public void sepet() throws Exception {
-        String xSignature = null;
-        String xApiKey = this.xApiKey;
-        String username = this.username;
-        String password = this.password;
-        Request body = new Request();
-        body.setInfoProvider(Request.InfoProviderEnum.SEP);
-        body.setNumeroCedula("YOUR_CEDULA");
-        body.setReferencia("YOUR_REFERENCIA");
-        body.setInstitucion("YOUR_INSTITuTION");
-        body.setFecha("YOUR_DATE");
-        body.setRequestId("3842184a-89b6-4307-ab87-dc5d830819fa");
-
-
-        ResponseSEP response = api.callSEP( xApiKey, username, password, body).getData();
-
-        }
+    }
 ```
 
 ### Paso 3. Ejecutar la prueba unitaria
